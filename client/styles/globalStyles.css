@@ -1,0 +1,16 @@
+/* styles/globalStyles.css */
+
+/* Add your custom global styles here */
+
+/* #e63946 */
+/* #a8dadc */
+/* #457b9d */
+/* #1d3557 */
+
+html,
+body {
+    padding: 0;
+    margin: 0;
+    font-family: 'Roboto', sans-serif;
+    background-color: #f1faee;
+}

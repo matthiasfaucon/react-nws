@@ -1,5 +1,8 @@
 import { useState } from 'react';
 import axios from 'axios';
+import Header from '../components/Header/HeaderComponent';
+import { serverAdress } from '../services/utils';
+import RegisterComponent from '../components/Register/RegisterComponent';
 
 export default function AddUser() {
   const [name, setName] = useState('');
@@ -9,7 +12,7 @@ export default function AddUser() {
     e.preventDefault();
     // Envoie une requête POST à l'API pour ajouter l'utilisateur
     try {
-      const res = await axios.post('http://localhost:5000/api/users', {
+      const res = await axios.post(serverAdress + 'users', {
         name: name,
         password: password,
       });
@@ -19,16 +22,9 @@ export default function AddUser() {
     }
   };
     return (
-      <form onSubmit={handleSubmit}>
-        <label>
-          Nom:
-          <input type="text" value={name} onChange={(e) => setName(e.target.value)} />
-        </label>
-        <label>
-          Password:
-          <input type="password" value={password} onChange={(e) => setPassword(e.target.value)} />
-        </label>
-        <button type="submit">Ajouter l'utilisateur</button>
-      </form>
+      <div>
+        <Header />
+        <RegisterComponent />
+      </div>
     );
 }

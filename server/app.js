@@ -6,17 +6,21 @@ const multer = require('multer');
 const fs = require('fs');
 const path = require('path');
 const jwt = require('jsonwebtoken');
+const ObjectId = require('mongodb').ObjectId;
 
-function generateAuthToken(userName) {
-  const token = jwt.sign({ userName }, 'your_secret_key', { expiresIn: '1h' });
+const Image = require('./models/Image');
+const User = require('./models/User');
+
+function generateAuthToken(userId) {
+  const token = jwt.sign({ userId }, 'your_secret_key', { expiresIn: '1h' });
+  console.log(token);
   return token;
 }
-
 
 // Configuration de Multer pour spécifier le dossier de destination des images
 const storage = multer.diskStorage({
   destination: function (req, file, cb) {
-    fs.access("./uploads", function(error) {
+    fs.access("./uploads", function (error) {
       if (error) {
         console.log("Directory does not exist.")
         fs.mkdirSync("./uploads")
@@ -46,29 +50,19 @@ mongoose.connect('mongodb+srv://mfaucon:QTDTmpy6gMvrGhof@cluster0.lnne8yv.mongod
     console.error('Erreur de connexion à MongoDB :', err);
   });
 
-// Définition d'un modèle de données avec Mongoose
-const Schema = mongoose.Schema;
-const mySchema = new Schema({
-  name: String,
-  password: String,
-});
-
-const MyModel = mongoose.model('User', mySchema);
-
 app.use(cors());
 app.use(express.json());
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
-
 // Configuration des routes
 // Route pour ajouter un utilisateur
 app.post('/api/users', (req, res) => {
-  const { name, password } = req.body;  
-  console.log(req.body);
+  const { name, password } = req.body;
+  // console.log(req.body);
   const hashedPassword = bcrypt.hashSync(password, 10);
 
-  // Crée une nouvelle instance du modèle MyModel
-  const newUser = new MyModel({
+  // Crée une nouvelle instance du modèle User
+  const newUser = new User({
     name: name,
     password: hashedPassword,
   });
@@ -86,23 +80,21 @@ app.post('/api/users', (req, res) => {
 
 app.post('/api/login', (req, res) => {
 
-  
   const { name, password } = req.body;
-  
-  const token = generateAuthToken(name);
+
 
   // Recherche de l'utilisateur dans la base de données
-  MyModel.findOne({ name: name })
+  User.findOne({ name: name })
     .then((user) => {
       if (user) {
-        console.log(user);
+        const token = generateAuthToken(user.id);
         // Vérification du mot de passe haché
         const isPasswordValid = bcrypt.compareSync(password, user.password);
 
         if (isPasswordValid) {
           // Authentification réussie
-          
-          res.json({ message: 'Connexion réussie', token: token});
+
+          res.json({ message: 'Connexion réussie', token: token, userId: user.id });
         } else {
           // Mot de passe incorrect
           res.status(401).json({ error: 'Mot de passe incorrect' });
@@ -118,38 +110,51 @@ app.post('/api/login', (req, res) => {
     });
 });
 
-const Image = require('./models/Image');
+app.post('/api/images', upload.array('image', 10), (req, res) => {
+  if (req.files && req.files.length > 0) {
+    const userId = req.body.userId;
+    console.log(userId);
+    User.findOne({ _id: userId })
+      .then((user) => {
+        if (!user) {
+          console.log("Utilisateur non trouvé");
+          res.status(404).json({ error: 'Utilisateur non trouvé' });
+        } else {
+          const userId = user._id;
+          console.log(userId);
+          const images = req.files.map((file) => {
+            return {
+              name: file.originalname,
+              size: file.size,
+              url: file.path,
+              isPublic: false,
+              user: userId
+            };
+          });
 
-app.post('/api/images', upload.single('image'), (req, res) => {
-  if (req.file) {
-    // Le fichier a été téléchargé avec succès
-    const imagePath = req.file.path;
-    console.log(req.file);
-    // Créer une nouvelle instance du modèle Image
-    const newImage = new Image({
-      name: req.file.originalname,
-      size: req.file.size,
-      url: imagePath
-    });
-
-    // Enregistrer l'image dans la base de données
-    newImage.save()
-      .then(() => {
-        res.json({ message: 'Image ajoutée avec succès' });
+          Image.insertMany(images)
+            .then(() => {
+              res.status(200).json({ message: 'Images ajoutées avec succès' });
+            })
+            .catch((error) => {
+              console.error('Erreur lors de l\'ajout des images :', error);
+              res.status(500).json({ error: 'Erreur lors de l\'ajout des images' });
+            });
+        }
       })
       .catch((error) => {
-        console.error('Erreur lors de l\'enregistrement de l\'image :', error);
-        res.status(500).json({ error: 'Erreur lors de l\'enregistrement de l\'image' });
+        console.error('Erreur lors de la recherche de l\'utilisateur :', error);
+        res.status(500).json({ error: 'Erreur lors de la recherche de l\'utilisateur' });
       });
   } else {
-    // Aucun fichier n'a été téléchargé
-    res.status(400).json({ error: 'Aucun fichier n\'a été téléchargé' });
+    res.status(400).json({ error: 'Aucune image à ajouter' });
   }
 });
 
+
 app.get('/api/images', (req, res) => {
   // Récupérer toutes les images de la base de données
-  Image.find()
+  Image.find({ isPublic: true})
     .then((images) => {
       res.json(images);
     })
@@ -158,6 +163,95 @@ app.get('/api/images', (req, res) => {
       res.status(500).json({ error: 'Erreur lors de la récupération des images' });
     });
 });
+
+
+app.get('/api/images/:userId', (req, res) => {
+  const userId = req.params.userId;
+  const userObjectId = new ObjectId(userId); // Récupérer l'ID de l'utilisateur depuis la requête
+  console.log(userId);
+  // Vérifier si l'ID de l'utilisateur est fourni
+  if (!userId) {
+    res.status(400).json({ error: 'ID de l\'utilisateur manquant' });
+    return;
+  }
+
+  // Récupérer les images associées à l'utilisateur spécifié
+  Image.find({ user: userObjectId })
+    .then((images) => {
+      res.json(images);
+      console.log(images);
+    })
+    .catch((error) => {
+      console.error('Erreur lors de la récupération des images :', error);
+      res.status(500).json({ error: 'Erreur lors de la récupération des images' });
+    });
+});
+
+
+// Route pour supprimer une image d'un utilisateur spécifique
+app.delete('/api/users/:userId/images/:imageId', (req, res) => {
+  const userId = req.params.userId;
+  const imageId = req.params.imageId;
+
+  User.findOne({ _id: userId })
+    .then((user) => {
+      if (!user) {
+        return res.status(404).json({ error: 'Utilisateur non trouvé' });
+      }
+
+      // Suppression de l'image du tableau images de l'utilisateur
+
+      // Enregistrement des modifications dans la base de données
+      user.save()
+        .then(() => {
+          // Suppression de l'image de la base de données
+          Image.findOneAndDelete({ _id: imageId })
+            .then((image) => {
+              if (!image) {
+                return res.status(404).json({ error: 'Image non trouvée' });
+              }
+
+              // Suppression du fichier d'image du système de fichiers
+              fs.unlink(image.url, (err) => {
+                if (err) {
+                  console.error('Erreur lors de la suppression du fichier d\'image :', err);
+                }
+              });
+
+              res.status(200).json({ message: 'Image supprimée avec succès' });
+            })
+            .catch((error) => {
+              console.error('Erreur lors de la suppression de l\'image :', error);
+              res.status(500).json({ error: 'Erreur lors de la suppression de l\'image' });
+            });
+        })
+        .catch((error) => {
+          console.error('Erreur lors de l\'enregistrement des modifications de l\'utilisateur :', error);
+          res.status(500).json({ error: 'Erreur lors de la suppression de l\'image' });
+        });
+    })
+    .catch((error) => {
+      console.error('Erreur lors de la recherche de l\'utilisateur :', error);
+      res.status(500).json({ error: 'Erreur lors de la recherche de l\'utilisateur' });
+    });
+});
+
+// Update une image
+app.put('/api/users/:userId/images/:imageId', (req, res) => {
+  const userId = req.params.userId;
+  const imageId = req.params.imageId;
+  const isPublic = req.body.isPublic;
+
+console.log(isPublic);
+
+  Image.findOneAndUpdate({ _id: imageId }, { user: userId })
+    .then((image) => {
+      image.isPublic = isPublic;
+      image.save()
+    });
+});
+
+
 
 // Démarrage du serveur
 app.listen(5000);
