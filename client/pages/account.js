@@ -12,43 +12,30 @@ import FormControlLabel from '@mui/material/FormControlLabel';
 import Switch from '@mui/material/Switch';
 import { getUserIdFromCookie } from "../utils/auth";
 import { serverAdress } from "../services/utils";
-
+import { ButtonBase } from "@mui/material";
 
 export default function AccountPage() {
-    
-    const [pictures, setPictures] = useState([]);
-    const [userId, setUserId] = useState('');
-    
-    useEffect(() => {
-      if (!localStorage.getItem('authToken')) {
-        window.location = '/login';
+  const [pictures, setPictures] = useState([]);
+  const [userId, setUserId] = useState('');
+
+  useEffect(() => {
+    if (!localStorage.getItem('authToken')) {
+      window.location = '/login';
+    }
+
+    const fetchData = async () => {
+      try {
+        const userIdFromCookie = getUserIdFromCookie();
+        setUserId(userIdFromCookie);
+        const response = await axios.get(serverAdress + "images/" + userIdFromCookie);
+        setPictures(response.data);
+      } catch (error) {
+        console.error(error);
       }
-    
-      const fetchData = async () => {
-        try {
-          const userIdFromCookie = getUserIdFromCookie();
-          setUserId(userIdFromCookie);
-          console.log(userIdFromCookie);
-          const response = await axios.get(serverAdress + "images/" + userIdFromCookie);
-          setPictures(response.data);
-          console.log(response.data);
-        } catch (error) {
-          console.error(error);
-        }
-      };
-    
-      fetchData();
-    }, []);
-    
-    // Si tu enlève ça le userId est undefined et du coup tu ne rentre pas dans la route API
-    useEffect(() => {
-      // Effectuez les opérations nécessaires une fois que `userId` a été mis à jour
-      if (userId !== '') {
-        // Vous pouvez placer ici le code qui utilise `userId`
-        console.log(userId);
-      }
-    }, [userId]);
-    
+    };
+
+    fetchData();
+  }, []);
 
   function deleteOnePicture(userId, imageId) {
     return async () => {
@@ -61,11 +48,19 @@ export default function AccountPage() {
     };
   }
 
-  function updateOnePicture(userId, imageId, isPublic) {
+  function updateOnePicture(imageId, isPublic) {
     return async () => {
       try {
-        await axios.put(`http://localhost:5000/api/users/${userId}/images/${imageId}`, { isPublic: !isPublic});
-        setPictures(pictures.filter((picture) => picture._id !== imageId));
+        const updatedIsPublic = !isPublic;
+        await axios.put(`http://localhost:5000/api/images/${imageId}`, { isPublic: updatedIsPublic });
+        setPictures((prevPictures) => {
+          return prevPictures.map((picture) => {
+            if (picture._id === imageId) {
+              return { ...picture, isPublic: updatedIsPublic };
+            }
+            return picture;
+          });
+        });
       } catch (error) {
         console.error(error);
       }
@@ -77,11 +72,24 @@ export default function AccountPage() {
     window.location = '/';
   }
 
+  function deleteAccount() {
+    return async () => {
+      try {
+        await axios.delete(`http://localhost:5000/api/users/${userId}`);
+        localStorage.removeItem('authToken');
+        window.location = '/';
+      } catch (error) {
+        console.error(error);
+      }
+    };
+  }
+
   return (
     <div>
       <Header />
-      <h1>Page profil</h1>
-      <button onClick={disconnect}>Se déconnecter</button>
+      <ButtonBase onClick={deleteAccount()} sx={{ color: 'white', backgroundColor: 'red', padding: '1rem', borderRadius: '5px', margin: '1rem' }}>
+        Supprimer votre compte
+      </ButtonBase>
       <h2>Images</h2>
       <ImageList>
         {pictures.map((picture) => (
@@ -92,7 +100,7 @@ export default function AccountPage() {
                 alt={picture.name}
                 loading="lazy"
                 style={{ objectFit: 'cover', width: '100%', height: '100%' }}
-                />
+              />
             </div>
             <ImageListItemBar
               title={picture.name}
@@ -103,19 +111,24 @@ export default function AccountPage() {
                     <DeleteForeverIcon onClick={deleteOnePicture(userId, picture._id)} sx={{ color: red[500] }} />
                   </IconButton>
                   <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', marginLeft: '8px' }}>
-                    <div style={{ color: 'white'}}>
+                    <div style={{ color: 'white' }}>
                       Confidentiel
                     </div>
                     <FormGroup>
-                      <FormControlLabel control={<Switch defaultChecked />} onClick={updateOnePicture(userId, picture._id, picture.isPublic)}/>
+                      <FormControlLabel
+                        control={
+                          <Switch
+                            checked={!picture.isPublic}
+                            onChange={updateOnePicture(picture._id, picture.isPublic)}
+                          />
+                        }
+                      />
                     </FormGroup>
                   </div>
                 </div>
               }
               style={{ opacity: 1 }}
-
             />
-
           </ImageListItem>
         ))}
       </ImageList>

@@ -16,7 +16,7 @@ export default function RegisterComponent() {
 
   const onSubmit = async (data) => {
     try {
-      const res = await axios.post(serverAdress + 'login', {
+      const res = await axios.post(serverAdress + 'register', {
         name: data.username,
         password: data.password,
       });
@@ -40,7 +40,7 @@ export default function RegisterComponent() {
             {...register('username', { required: true, maxLength: 80 })}
           />
         </FormControl>
-        {errors.username && <Alert severity="error">Le nom d'utilisateur est requis.</Alert>}
+        {errors.username && <Alert severity="error">Le nom d&apos;utilisateur est requis.</Alert>}
 
         <FormControl sx={{ width: '25ch' }}>
           <TextField

@@ -1,0 +1,18 @@
+# Utilisez une image Node.js comme image de base
+FROM node:18-alpine
+
+# Copiez le package.json et le package-lock.json pour installer les dépendances
+COPY package*.json ./
+
+# Installez les dépendances
+RUN npm install
+
+# Copiez le reste des fichiers du projet
+COPY . .
+
+# Exposez le port sur lequel l'application écoute
+EXPOSE 3000
+
+# Démarrez l'application Next.js
+CMD ["npm", "start"]
+

@@ -16,6 +16,7 @@ export default function AddUser() {
         name: name,
         password: password,
       });
+      saveUserIdToCookie(res.data.userId);
       console.log(res.data);
     } catch (err) {
       console.error(err);

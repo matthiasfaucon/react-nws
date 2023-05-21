@@ -110,8 +110,8 @@ function ResponsiveAppBar() {
                 display: { xs: 'block', md: 'none' },
               }}
             >
-              {pages.map((page) => (
-                <Link href={page.url}>
+              {pages.map((page, index) => (
+                <Link key={index} href={page.url}>
                   <MenuItem key={page.nom} onClick={handleCloseNavMenu}>
                     <Typography textAlign="center">{page.nom}</Typography>
                   </MenuItem>
@@ -173,12 +173,12 @@ function ResponsiveAppBar() {
               open={Boolean(anchorElUser)}
               onClose={handleCloseUserMenu}
             >
-              {settings.map((setting) => (
+              {settings.map((setting, index) => (
+                  <Link key={index} href={setting.url}>
                 <MenuItem key={setting.nom} onClick={handleCloseUserMenu}>
-                  <Link href={setting.url}>
                     <Typography textAlign="center">{setting.nom}</Typography>
-                  </Link>
                 </MenuItem>
+                  </Link>
               ))}
             </Menu>
           </Box>

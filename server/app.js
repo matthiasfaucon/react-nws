@@ -78,10 +78,52 @@ app.post('/api/users', (req, res) => {
     });
 });
 
+app.delete('/api/users/:userId', (req, res) => {
+  const userId = req.params.userId;
+  console.log(userId);
+  User.deleteOne({ _id: userId })
+    .then(() => {
+      Image.deleteMany({ user: userId })
+        .then(() => {
+          console.log("Images supprimées");
+        })
+        .catch((err) => {
+          console.error('Erreur lors de la suppression des images :', err);
+          res.status(500).json({ error: 'Erreur lors de la suppression des images' });
+        });
+      res.status(200).json({ message: 'Utilisateur supprimé avec succès' });
+    })
+    .catch((err) => {
+      console.error('Erreur lors de la suppression de l\'utilisateur :', err);
+      res.status(500).json({ error: 'Erreur lors de la suppression de l\'utilisateur' });
+    });
+});
+
+app.post('/api/register', (req, res) => {
+  const { name, password } = req.body;
+  // console.log(req.body);
+  const hashedPassword = bcrypt.hashSync(password, 10);
+  
+  // Crée une nouvelle instance du modèle User
+  const newUser = new User({
+    name: name,
+    password: hashedPassword,
+  });
+
+  // Sauvegarde l'utilisateur dans la base de données
+  newUser.save()
+    .then(() => {
+      res.status(201).json({ message: 'Utilisateur ajouté avec succès', userId: newUser.id });
+    })
+    .catch((err) => {
+      console.error('Erreur lors de l\'ajout de l\'utilisateur :', err);
+      res.status(500).json({ error: 'Erreur lors de l\'ajout de l\'utilisateur' });
+    });
+});
+
 app.post('/api/login', (req, res) => {
 
   const { name, password } = req.body;
-
 
   // Recherche de l'utilisateur dans la base de données
   User.findOne({ name: name })
@@ -112,7 +154,9 @@ app.post('/api/login', (req, res) => {
 
 app.post('/api/images', upload.array('image', 10), (req, res) => {
   if (req.files && req.files.length > 0) {
+    console.log(req.body);
     const userId = req.body.userId;
+    // const userIdObjectId = new ObjectId(userId);
     console.log(userId);
     User.findOne({ _id: userId })
       .then((user) => {
@@ -168,7 +212,6 @@ app.get('/api/images', (req, res) => {
 app.get('/api/images/:userId', (req, res) => {
   const userId = req.params.userId;
   const userObjectId = new ObjectId(userId); // Récupérer l'ID de l'utilisateur depuis la requête
-  console.log(userId);
   // Vérifier si l'ID de l'utilisateur est fourni
   if (!userId) {
     res.status(400).json({ error: 'ID de l\'utilisateur manquant' });
@@ -179,7 +222,6 @@ app.get('/api/images/:userId', (req, res) => {
   Image.find({ user: userObjectId })
     .then((images) => {
       res.json(images);
-      console.log(images);
     })
     .catch((error) => {
       console.error('Erreur lors de la récupération des images :', error);
@@ -236,13 +278,23 @@ app.delete('/api/users/:userId/images/:imageId', (req, res) => {
     });
 });
 
+app.put('/api/images/:imageId', (req, res) => {
+  const imageId = req.params.imageId;
+  const isPublic = req.body.isPublic;
+console.log(isPublic);
+  Image.findOneAndUpdate({ _id: imageId }, { isPublic: isPublic })
+    .then((image) => {
+      image.isPublic = isPublic;
+      image.save()
+      return res.status(200).json({ message: 'Image modifiée avec succès' });
+    });
+});
+
 // Update une image
 app.put('/api/users/:userId/images/:imageId', (req, res) => {
   const userId = req.params.userId;
   const imageId = req.params.imageId;
   const isPublic = req.body.isPublic;
-
-console.log(isPublic);
 
   Image.findOneAndUpdate({ _id: imageId }, { user: userId })
     .then((image) => {
@@ -250,8 +302,6 @@ console.log(isPublic);
       image.save()
     });
 });
-
-
 
 // Démarrage du serveur
 app.listen(5000);

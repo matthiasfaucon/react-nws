@@ -27,7 +27,7 @@ export default function LoginComponent() {
       window.location = '/account'; // Redirect to profile page
     } catch (err) {
       console.error(err);
-      setError('Une erreur s\'est produite. Veuillez réessayer.'); // Set error message
+      setError('Nom d\'utilisateur ou mot de passe incorrect'); // Set error message
     }
   };
 
@@ -41,7 +41,7 @@ export default function LoginComponent() {
             {...register('username', { required: true, maxLength: 80 })}
           />
         </FormControl>
-        {errors.username && <Alert severity="error">Le nom d'utilisateur est requis.</Alert>}
+        {errors.username && <Alert severity="error">Le nom d&apos;utilisateur est requis.</Alert>}
 
         <FormControl sx={{ width: '25ch' }}>
           <TextField
