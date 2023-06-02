@@ -1,4 +1,8 @@
 nws-upload-image.cloudns.nz {
-  reverse_proxy frontend:3000
-  reverse_proxy backend:5000
+  reverse_proxy * localhost:3000
+  reverse_proxy * localhost:5000
+}
+nws-upload-image.cloudns.nz {
+  reverse_proxy * frontend:3000
+  reverse_proxy * backend:5000
 }
