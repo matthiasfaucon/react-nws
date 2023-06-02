@@ -2,7 +2,3 @@ nws-upload-image.cloudns.nz {
   reverse_proxy frontend:3000
   reverse_proxy backend:5000
 }
-
-tls {
-  dns cloudnsnz matthias.faucon@orange.fr
-}
