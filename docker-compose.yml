@@ -8,9 +8,20 @@ services:
       - "3000:3000"
     depends_on:
       - backend
+
   backend:
     build:
       context: ./server
       dockerfile: DockerFile
     ports:
       - "5000:5000"
+
+  caddy:
+    image: abiosoft/caddy
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./caddy/Caddyfile:/etc/caddy/Caddyfile
+    depends_on:
+      - frontend
