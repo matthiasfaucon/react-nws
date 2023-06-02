@@ -19,7 +19,7 @@ services:
   caddy:
     image: abiosoft/caddy
     ports:
-      - "80:80"
+      - "81:81"
       - "444:444"
     volumes:
       - ./caddy/Caddyfile:/etc/caddy/Caddyfile
