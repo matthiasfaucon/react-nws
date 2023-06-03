@@ -31,7 +31,8 @@ export default function RegisterComponent() {
   };
 
   return (
-    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100vh' }}>
+    <div style={{ display: 'flex', alignItems: 'center', flexDirection: 'column', justifyContent: 'center', height: '90vh' }}>
+      <h1>Inscrivez-vous</h1>
       <form onSubmit={handleSubmit(onSubmit)} style={{ display: 'flex', flexDirection: 'column' }}>
         {error && <Alert severity="error">{error}</Alert>} {/* Display error message */}
         <FormControl sx={{ width: '25ch' }}>

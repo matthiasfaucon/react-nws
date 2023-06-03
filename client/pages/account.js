@@ -17,6 +17,7 @@ import { ButtonBase } from "@mui/material";
 export default function AccountPage() {
   const [pictures, setPictures] = useState([]);
   const [userId, setUserId] = useState('');
+  const [user, setUser] = useState({});
 
   useEffect(() => {
     if (!localStorage.getItem('authToken')) {
@@ -29,6 +30,8 @@ export default function AccountPage() {
         setUserId(userIdFromCookie);
         const response = await axios.get(serverAdress + "images/" + userIdFromCookie);
         setPictures(response.data);
+        const responseUser = await axios.get(serverAdress + "user/" + userIdFromCookie);
+        setUser(responseUser.data);
       } catch (error) {
         console.error(error);
       }
@@ -68,8 +71,14 @@ export default function AccountPage() {
   }
 
   function disconnect() {
-    localStorage.removeItem('authToken');
-    window.location = '/';
+    return async () => {
+      try {
+        localStorage.removeItem('authToken');
+        window.location = '/';
+      } catch (error) {
+        console.error(error);
+      }
+    }
   }
 
   function deleteAccount() {
@@ -87,9 +96,13 @@ export default function AccountPage() {
   return (
     <div>
       <Header />
+      <ButtonBase onClick={disconnect()} sx={{ color: 'white', backgroundColor: 'red', padding: '1rem', borderRadius: '5px', margin: '1rem' }}>
+        Se déconnecter
+      </ButtonBase>
       <ButtonBase onClick={deleteAccount()} sx={{ color: 'white', backgroundColor: 'red', padding: '1rem', borderRadius: '5px', margin: '1rem' }}>
         Supprimer votre compte
       </ButtonBase>
+      <h1>Bonjour {user.name} </h1>
       <h2>Images</h2>
       <ImageList>
         {pictures.map((picture) => (

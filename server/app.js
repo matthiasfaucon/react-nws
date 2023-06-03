@@ -152,6 +152,18 @@ app.post('/api/login', (req, res) => {
     });
 });
 
+app.get('/api/user/:userId', (req, res) => {
+  User.findOne({ _id: req.params.userId })
+    .then((user) => {
+      if (user) {
+        res.status(200).json(user);
+      } else {
+        res.status(404).json({ error: 'Utilisateur non trouvé' });
+      }
+    }
+    )
+});
+
 app.post('/api/images', upload.array('image', 10), (req, res) => {
   if (req.files && req.files.length > 0) {
     console.log(req.body);
