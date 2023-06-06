@@ -22,5 +22,4 @@ jobs:
         script: |
           cd react-nws
           git pull origin main
-          docker compose up -d --build
           
