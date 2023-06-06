@@ -14,7 +14,6 @@ import { getUserIdFromCookie } from "../utils/auth";
 import { serverAdress, serverAdressPicture } from "../services/utils";
 import { ButtonBase } from "@mui/material";
 
-
 export default function AccountPage() {
   const [pictures, setPictures] = useState([]);
   const [userId, setUserId] = useState('');
