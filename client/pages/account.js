@@ -12,7 +12,6 @@ import FormControlLabel from '@mui/material/FormControlLabel';
 import Switch from '@mui/material/Switch';
 import { getUserIdFromCookie } from "../utils/auth";
 import { serverAdress } from "../services/utils";
-import { serverAdress } from '../../services/utils';
 import { ButtonBase } from "@mui/material";
 
 export default function AccountPage() {
