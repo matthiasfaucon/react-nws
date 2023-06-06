@@ -12,7 +12,7 @@ import Head from 'next/head';
 import Link from 'next/link';
 import Header from '../components/Header/HeaderComponent';
 import HomeComponent from '../components/HomeComponent/HomeComponent';
-import { serverAdress } from '../services/utils';
+import { serverAdress, serverAdressPicture } from '../services/utils';
 
 export default function HomePage() {
   
@@ -43,7 +43,7 @@ export default function HomePage() {
           <ImageListItem key={picture._id}>
             <div style={{ height: '200px' }}>
               <img
-                src={`http://localhost:5000/${picture.url}`}
+                src={serverAdressPicture + `${picture.url}`}
                 alt={picture.name}
                 loading="lazy"
                 style={{ objectFit: 'cover', width: '100%', height: '100%' }}
