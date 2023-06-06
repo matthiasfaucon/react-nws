@@ -12,6 +12,7 @@ import FormControlLabel from '@mui/material/FormControlLabel';
 import Switch from '@mui/material/Switch';
 import { getUserIdFromCookie } from "../utils/auth";
 import { serverAdress } from "../services/utils";
+import { serverAdress } from '../../services/utils';
 import { ButtonBase } from "@mui/material";
 
 export default function AccountPage() {
@@ -43,7 +44,7 @@ export default function AccountPage() {
   function deleteOnePicture(userId, imageId) {
     return async () => {
       try {
-        await axios.delete(`http://localhost:5000/api/users/${userId}/images/${imageId}`);
+        await axios.delete(serverAdress + `users/${userId}/images/${imageId}`);
         setPictures(pictures.filter((picture) => picture._id !== imageId));
       } catch (error) {
         console.error(error);
@@ -55,7 +56,7 @@ export default function AccountPage() {
     return async () => {
       try {
         const updatedIsPublic = !isPublic;
-        await axios.put(`http://localhost:5000/api/images/${imageId}`, { isPublic: updatedIsPublic });
+        await axios.put(serverAdress + `images/${imageId}`, { isPublic: updatedIsPublic });
         setPictures((prevPictures) => {
           return prevPictures.map((picture) => {
             if (picture._id === imageId) {
@@ -84,7 +85,7 @@ export default function AccountPage() {
   function deleteAccount() {
     return async () => {
       try {
-        await axios.delete(`http://localhost:5000/api/users/${userId}`);
+        await axios.delete(serverAdress + `api/users/${userId}`);
         localStorage.removeItem('authToken');
         window.location = '/';
       } catch (error) {
@@ -109,7 +110,7 @@ export default function AccountPage() {
           <ImageListItem key={picture._id}>
             <div style={{ height: '200px' }}>
               <img
-                src={`http://localhost:5000/${picture.url}`}
+                src={serverAdress + `${picture.url}`}
                 alt={picture.name}
                 loading="lazy"
                 style={{ objectFit: 'cover', width: '100%', height: '100%' }}
