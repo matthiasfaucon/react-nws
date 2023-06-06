@@ -11,7 +11,7 @@ import FormGroup from '@mui/material/FormGroup';
 import FormControlLabel from '@mui/material/FormControlLabel';
 import Switch from '@mui/material/Switch';
 import { getUserIdFromCookie } from "../utils/auth";
-import { serverAdress } from "../services/utils";
+import { serverAdress, serverAdressPicture } from "../services/utils";
 import { ButtonBase } from "@mui/material";
 
 export default function AccountPage() {
@@ -84,7 +84,7 @@ export default function AccountPage() {
   function deleteAccount() {
     return async () => {
       try {
-        await axios.delete(serverAdress + `api/users/${userId}`);
+        await axios.delete(serverAdress + `/users/${userId}`);
         localStorage.removeItem('authToken');
         window.location = '/';
       } catch (error) {
@@ -109,7 +109,7 @@ export default function AccountPage() {
           <ImageListItem key={picture._id}>
             <div style={{ height: '200px' }}>
               <img
-                src={serverAdress + `${picture.url}`}
+                src={serverAdressPicture + `${picture.url}`}
                 alt={picture.name}
                 loading="lazy"
                 style={{ objectFit: 'cover', width: '100%', height: '100%' }}
