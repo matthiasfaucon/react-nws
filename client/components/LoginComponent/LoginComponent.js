@@ -5,6 +5,7 @@ import { removeUserIdFromCookie, saveUserIdToCookie } from '../../utils/auth';
 import { FormControl, OutlinedInput, Button, TextField, Alert } from '@mui/material';
 import { serverAdress } from '../../services/utils';
 
+
 export default function LoginComponent() {
   const [error, setError] = useState('');
 
